@@ -21,7 +21,7 @@ A **MERN Stack Authentication System** with user registration, login, and protec
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/mern-auth-app.git
+git clone https://github.com/hamxasajid/mern-auth-app.git
 
 cd mern-auth-app
 
