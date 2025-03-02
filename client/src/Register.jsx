@@ -18,6 +18,7 @@ const Register = () => {
         email,
         password,
       });
+
       console.log(result);
       if (result.status === 200) {
         alert("Registration successful");
@@ -27,9 +28,17 @@ const Register = () => {
         }, 1000);
       }
     } catch (error) {
-      console.log(error);
+      if (error.response && error.response.status === 400) {
+        alert("User already exists");
+        // Focusing on the email input
+        document.getElementById("email").focus();
+      } else {
+        console.log(error);
+        alert("Registration failed");
+      }
     }
   };
+
   return (
     <>
       <div className="container mt-5">
@@ -50,6 +59,7 @@ const Register = () => {
                 <div className="mb-3">
                   <label className="form-label">Email</label>
                   <input
+                    id="email"
                     type="email"
                     className="form-control"
                     placeholder="Enter your email"

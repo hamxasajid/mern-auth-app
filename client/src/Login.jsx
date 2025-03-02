@@ -23,12 +23,19 @@ const Login = () => {
           alert("Login successful");
 
           setTimeout(() => {
-              navigate("/dashboard");
+            navigate("/dashboard");
           }, 1000);
         }
       })
       .catch((err) => {
-        console.error(err);
+        if (err.response && err.response.status === 404) {
+          alert("User not found");
+        } else if (err.response && err.response.status === 401) {
+          alert("Incorrect password");
+        } else {
+          console.log(err);
+          alert("Login failed");
+        }
       });
   };
 

@@ -5,42 +5,64 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = 3000;
 const regModel = require("./regModel/regModel.js");
+const bcrypt = require("bcrypt"); // Import bcrypt
 
 // Connect to MongoDB
-mongoose.connect("mongodb://127.0.0.1:27017/authForm", {});
-
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
-db.once("open", () => {
-  console.log("Connected to MongoDB");
-});
+const db = mongoose
+  .connect("mongodb://127.0.0.1:27017/authForm")
+  .then(() => console.log("MongoDB Connected..."))
+  .catch((err) => console.log(err));
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  regModel
-    .findOne({ email: email })
-    // Check if user exists
-    .then((user) => {
-      if (!user) return res.status(404).json({ message: "User not found" });
-      // Check if password matches
-      if (user.password !== password)
-        return res.status(401).json({ message: "Incorrect password" });
-      res.json({ message: "Logged in successfully" });
-    })
-    // If user doesn't exist or password is incorrect
-    .catch((error) => res.status(500).json(error));
+
+  try {
+    // Find user by email
+    const user = await regModel.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Incorrect password" });
+    }
+
+    res.json({ message: "Logged in successfully" });
+
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.post("/register", (req, res) => {
-  regModel
-    .create(req.body)
-    .then((users) => res.json(users))
-    .catch((error) => res.json(error));
+  const { name, email, password } = req.body;
+
+  // Check if user already exists
+  regModel.findOne({ email: email }).then((user) => {
+    if (user) return res.status(400).json({ message: "User already exists" });
+
+    // Hash password
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err)
+        return res.status(500).json({ message: "Error hashing password" });
+
+      // Create new user
+      const newUser = new regModel({ name, email, password: hash });
+      newUser
+        .save()
+        .then(() => res.json({ message: "User registered successfully" }))
+        .catch((error) => res.status(500).json(error));
+    });
+  });
 });
 
 // Start the server
