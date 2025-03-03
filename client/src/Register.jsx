@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -21,20 +22,35 @@ const Register = () => {
 
       console.log(result);
       if (result.status === 200) {
-        alert("Registration successful");
-
-        setTimeout(() => {
+        Swal.fire({
+          title: "Success!",
+          text: "Registration successful",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        }).then(() => {
           navigate("/login");
-        }, 1000);
+        });
       }
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        alert("User already exists");
-        // Focusing on the email input
-        document.getElementById("email").focus();
+        Swal.fire({
+          title: "Error!",
+          text: "User already exists",
+          icon: "error",
+          confirmButtonText: "OK",
+        }).then(() => {
+          // Focusing on the email input
+          document.getElementById("email").focus();
+        });
       } else {
         console.log(error);
-        alert("Registration failed");
+        Swal.fire({
+          title: "Error!",
+          text: "Registration failed",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       }
     }
   };
